@@ -50,44 +50,38 @@ stop_words = set(stop_words)
 all_words = []
 filtered_pos_tweets = []
 filtered_neg_tweets = []
+allowed_word_types = ["J"]
 
 def clean_tweet(tweet):
-    '''
-    Utility function to clean tweet text by removing links, special characters
-    using simple regex statements.
-    '''
-    return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
+    tweet = ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
+    word_tokens = word_tokenize(tweet)
+    words_tokens = [w.lower() for w in word_tokens]
+    #Removing Stop words
+    word_tokens = [w for w in word_tokens if not w in stop_words]
+    #Stemming
+    stemmed_word_tokens = [ps.stem(w) for w in word_tokens]
+    return stemmed_word_tokens
 
 
 for pos_tweet in pos_tweets:
-    pos_tweet = clean_tweet(pos_tweet)
-    word_tokens = word_tokenize(pos_tweet)
-    words_tokens = [w.lower() for w in word_tokens]
-    #Removing Stop words
-    word_tokens = [w for w in word_tokens if not w in stop_words]
-    
-    #Stemming
-    stemmed_word_tokens = [ps.stem(w) for w in word_tokens]
-
-    all_words.extend(word_tokens)
+    word_tokens = clean_tweet(pos_tweet)
+    pos = nltk.pos_tag(word_tokens)
+    for w in pos:
+        if w[1][0] in allowed_word_types:
+            all_words.append(w[0].lower())
+    #all_words.extend(word_tokens)
     filtered_pos_tweets.append((word_tokens, 'pos'))
 
 for neg_tweet in neg_tweets:
-    neg_tweet = clean_tweet(neg_tweet)
-    word_tokens = word_tokenize(neg_tweet)
-    words_tokens = [w.lower() for w in word_tokens]
-    #Removing Stop words
-    word_tokens = [w for w in word_tokens if not w in stop_words]
-    
-    #Stemming
-    stemmed_word_tokens = [ps.stem(w) for w in word_tokens]
-
-    all_words.extend(word_tokens)
+    word_tokens = clean_tweet(neg_tweet)
+    pos = nltk.pos_tag(word_tokens)
+    for w in pos:
+        if w[1][0] in allowed_word_types:
+            all_words.append(w[0].lower())
+    #all_words.extend(word_tokens)
     filtered_neg_tweets.append((word_tokens, 'neg'))
 
 documents = filtered_pos_tweets + filtered_neg_tweets
-
-
 
 save_documents = open("pickled_algos/documents.pickle","wb")
 pickle.dump(documents, save_documents)
@@ -180,21 +174,4 @@ print("SGDClassifier accuracy percent:",nltk.classify.accuracy(SGDC_classifier, 
 save_classifier = open("pickled_algos/SGDC_classifier5k.pickle","wb")
 pickle.dump(SGDC_classifier, save_classifier)
 save_classifier.close()
-
-voted_classifier = VoteClassifier(classifier,
-                                  NuSVC_classifier,
-                                  LinearSVC_classifier,
-                                  SGDClassifier_classifier,
-                                  MNB_classifier,
-                                  BernoulliNB_classifier,
-                                  LogisticRegression_classifier)
-
-print("voted_classifier accuracy percent:", (nltk.classify.accuracy(voted_classifier, testing_set))*100)
-
-print("Classification:", voted_classifier.classify(testing_set[0][0]), "Confidence %:",voted_classifier.confidence(testing_set[0][0])*100)
-print("Classification:", voted_classifier.classify(testing_set[1][0]), "Confidence %:",voted_classifier.confidence(testing_set[1][0])*100)
-print("Classification:", voted_classifier.classify(testing_set[2][0]), "Confidence %:",voted_classifier.confidence(testing_set[2][0])*100)
-print("Classification:", voted_classifier.classify(testing_set[3][0]), "Confidence %:",voted_classifier.confidence(testing_set[3][0])*100)
-print("Classification:", voted_classifier.classify(testing_set[4][0]), "Confidence %:",voted_classifier.confidence(testing_set[4][0])*100)
-print("Classification:", voted_classifier.classify(testing_set[5][0]), "Confidence %:",voted_classifier.confidence(testing_set[5][0])*100)
 

@@ -25,13 +25,3 @@ for page in pages_to_follow:
 
 print('Total no of collected tweets:'+ str(len(tweets)))
 
-def clean_tweet(tweet):
-    '''
-    Utility function to clean tweet text by removing links, special characters
-    using simple regex statements.
-    '''
-    return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
-
-
-for tweet in tweets:
-    print(clean_tweet(tweet.text))
