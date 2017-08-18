@@ -68,7 +68,7 @@ featuresets = pickle.load(featuresets_f)
 featuresets_f.close()
 
 random.shuffle(featuresets)
-print(len(featuresets))
+#print(len(featuresets))
 
 # set that we'll train our classifier with
 training_set = featuresets[:9000]
